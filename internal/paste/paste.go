@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
+	"goblin/internal/metrics"
 	"goblin/internal/util"
 
 	"github.com/gorilla/mux"
@@ -62,6 +62,7 @@ func CreatePasteHandler(w http.ResponseWriter, r *http.Request) {
 	content, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		metrics.IncrementPasteCreatedCounter("failure")
 		return
 	}
 
@@ -96,6 +97,7 @@ func CreatePasteHandler(w http.ResponseWriter, r *http.Request) {
 	if err := util.CreateDirectoryIfNotExists(pasteDir); err != nil {
 		logger.Errorf("Failed to create paste directory: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		metrics.IncrementPasteCreatedCounter("failure")
 		return
 	}
 
@@ -105,6 +107,7 @@ func CreatePasteHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Errorf("Failed to create paste file: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		metrics.IncrementPasteCreatedCounter("failure")
 		return
 	}
 	defer pasteFile.Close()
@@ -114,31 +117,37 @@ func CreatePasteHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Errorf("Failed to write paste content to file: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		metrics.IncrementPasteCreatedCounter("failure")
 		return
 	}
 
-	// Determine the protocol based on the request's TLS connection
-	protocol := "http"
+	// Construct the complete paste URL including the protocol
+	var protocol string
 	if r.TLS != nil {
 		protocol = "https"
+	} else {
+		protocol = "http"
 	}
-
-	// Construct the complete paste URL with the protocol
 	pasteURL := fmt.Sprintf("%s://%s/%s", protocol, r.Host, pasteID)
-
-	// Remove any trailing '%' character from the pasteURL
-	if strings.HasSuffix(pasteURL, "%") {
-		pasteURL = pasteURL[:len(pasteURL)-1]
-	}
 
 	// Write the paste URL in the response
 	response := fmt.Sprintf("Paste available at %s", pasteURL)
 	w.Write([]byte(response))
+
+	// Record metrics
+	metrics.IncrementPasteCreatedCounter("success")
+	metrics.ObservePasteLength("success", float64(len(content)))
 }
 
 func GetPasteHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pasteID := vars["id"]
+
+	// Exclude the "/metrics" path
+	if pasteID == "metrics" {
+		http.NotFound(w, r)
+		return
+	}
 
 	p, exists := pasteMap[pasteID]
 	if !exists {

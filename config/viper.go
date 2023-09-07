@@ -26,7 +26,8 @@ func LoadConfig() (*AppConfig, error) {
 	viper.SetDefault("TemplateDir", "templates")
 	viper.SetDefault("LogDir", "logs")
 	viper.SetDefault("PasteDir", "pastes")
-	viper.SetDefault("Expire", 24) // Default expiration duration in hours
+	viper.SetDefault("Expire", 24) //  in hours
+	viper.SetDefault("Metrics", false)
 
 	// read the configuration file if it's present
 	// goblin can also be configured through command lines during runtime

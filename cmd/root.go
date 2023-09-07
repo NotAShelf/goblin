@@ -8,12 +8,18 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	// "github.com/gorilla/mux" // Import Gorilla Mux
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"goblin/config"
 	"goblin/internal/paste"
-	"goblin/internal/router"
+	// "goblin/internal/router"
 )
 
-var verbose bool
+var (
+	verbose       bool
+	enableMetrics bool
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "goblin",
@@ -57,13 +63,16 @@ var rootCmd = &cobra.Command{
 		log.Infof("Private mode: %v", private)
 
 		// Create the router and start the server using the router package
-		r := router.NewRouter()
+		// r := router.NewRouter()
+
+		// Add a new route for Prometheus metrics
+		http.Handle("/metrics", promhttp.Handler()) // Use Prometheus handler
 
 		log.Info("Server started")
 
 		log.Infof("Listening on port %s\n", port)
 
-		err = http.ListenAndServe(":"+port, r)
+		err = http.ListenAndServe(":"+port, nil) // Use nil handler for default routing
 		if err != nil {
 			log.Errorf("Error starting server: %v\n", err)
 		}
@@ -87,8 +96,9 @@ func intializeFlags() {
 	rootCmd.PersistentFlags().String("templateDirectory", "", "Template directory path")
 	rootCmd.PersistentFlags().String("logDir", "", "Log file location")
 	rootCmd.PersistentFlags().String("pasteDir", "", "Paste storage location")
-	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Print config values")
+	rootCmd.PersistentFlags().BoolVar(&verbose, "verbose", false, "Print config values and enable verbose logging")
 	rootCmd.PersistentFlags().Int("expire", 24, "Paste expiration duration in hours")
+	rootCmd.PersistentFlags().BoolVar(&enableMetrics, "metrics", false, "Enable Prometheus metrics")
 
 	viper.BindPFlag("Port", rootCmd.PersistentFlags().Lookup("port"))
 	viper.BindPFlag("Private", rootCmd.PersistentFlags().Lookup("private"))
