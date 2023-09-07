@@ -1,2 +1,10 @@
 # ignore saved pastes
 pastes/
+
+# ignore built binary
+goblin
+
+# ignore nix build artifacts
+
+result
+result-*
