@@ -1,3 +1,4 @@
+// entrypoint for the program
 package main
 
 import (
