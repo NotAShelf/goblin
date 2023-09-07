@@ -11,7 +11,7 @@ import (
 	// "github.com/gorilla/mux" // Import Gorilla Mux
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"goblin/config"
+	"goblin/internal/config"
 	"goblin/internal/paste"
 	// "goblin/internal/router"
 )
