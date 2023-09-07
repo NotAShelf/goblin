@@ -1,5 +1,5 @@
-{buildGo121Module}:
-buildGo121Module {
+{buildGoModule}:
+buildGoModule {
   pname = "goblin";
   version = "0.0.1";
 
