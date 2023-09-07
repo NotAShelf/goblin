@@ -1,0 +1,6 @@
+Port: "8080"
+Private: false
+TemplateDir: "templates"
+LogDir: "logs"
+PasteDir: "pastes"
+ExpirationDuration: 24
