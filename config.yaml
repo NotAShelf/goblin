@@ -4,3 +4,4 @@ TemplateDir: "templates"
 LogDir: "logs"
 PasteDir: "pastes"
 ExpirationDuration: 24
+Metrics: true
