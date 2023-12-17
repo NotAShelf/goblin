@@ -58,6 +58,8 @@ func InitializeTemplates() error {
 }
 
 func CreatePasteHandler(w http.ResponseWriter, r *http.Request) {
+	private := viper.GetBool("Private")
+
 	// Parse the request body
 	content, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -66,15 +68,41 @@ func CreatePasteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the private flag is set
-	private := viper.GetBool("Private")
-
-	// Log the event
+	// log the event's occurance - not the content
 	log.Infof("Received request to create a paste (Private mode: %v)", private)
 
-	// Log the content if private mode is not enabled
 	if !private {
+		// log the content if private mode is not enabled
 		log.Infof("Received content: %s", content)
+		// also log the content into a file with the timestamp in the log directory
+
+		// check if the log directory exists and create it if it doesn't
+		if _, err := os.Stat(viper.GetString("LogDir")); os.IsNotExist(err) {
+			err := os.MkdirAll(viper.GetString("LogDir"), 0755)
+			if err != nil {
+				logger.Errorf("Failed to create log directory: %v", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+		}
+
+		logFile := filepath.Join(viper.GetString("LogDir"), fmt.Sprintf("%d.log", time.Now().UnixNano()))
+		f, err := os.Create(logFile)
+
+		if err != nil {
+			logger.Errorf("Failed to create log file: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			metrics.IncrementPasteCreatedCounter("failure")
+			return
+		}
+		defer f.Close()
+
+		if _, err := f.Write(content); err != nil {
+			logger.Errorf("Failed to write to log file: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			metrics.IncrementPasteCreatedCounter("failure")
+			return
+		}
+
 	}
 
 	// Generate a unique ID for the paste
