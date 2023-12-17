@@ -1,10 +1,17 @@
+# ignore user config
+config.yaml
+
 # ignore saved pastes
 pastes/
 
 # ignore built binary
 goblin
 
-# ignore nix build artifacts
+# ignore logs directory
+logs/
 
+# ignore nix build artifacts
 result
 result-*
+
+
