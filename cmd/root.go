@@ -8,12 +8,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	// "github.com/gorilla/mux" // Import Gorilla Mux
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"goblin/internal/config"
 	"goblin/internal/paste"
-	// "goblin/internal/router"
+	"goblin/internal/router"
 )
 
 var (
@@ -63,7 +62,8 @@ var rootCmd = &cobra.Command{
 		log.Infof("Private mode: %v", private)
 
 		// Create the router and start the server using the router package
-		// r := router.NewRouter()
+		router := router.NewRouter()
+		http.Handle("/", router)
 
 		// Add a new route for Prometheus metrics
 		http.Handle("/metrics", promhttp.Handler()) // Use Prometheus handler
