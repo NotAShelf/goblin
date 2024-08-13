@@ -3,6 +3,7 @@ package cmd
 import (
 	"net/http"
 	"os"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -43,7 +44,7 @@ var rootCmd = &cobra.Command{
 			log.Infof("Template directory: %s", config.TemplateDir)
 			log.Infof("Log directory: %s", config.LogDir)
 			log.Infof("Paste storage directory: %s", config.PasteDir)
-			log.Infof("Expire: %s", config.Expire)
+			log.Infof("Expire: %s", strconv.Itoa(config.Expire))
 		}
 
 		// Set the port based on the configuration or the flag
